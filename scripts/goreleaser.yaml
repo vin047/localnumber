@@ -1,0 +1,79 @@
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+builds:
+  - id: reproducible
+    main: ./cmd
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm64
+      - arm
+    goarm:
+      - 6
+    goamd64:
+      - v2
+    ignore:
+      - goos: windows
+        goarch: arm64
+      - goos: windows
+        goarch: arm
+    mod_timestamp: '{{ .CommitTimestamp }}'
+universal_binaries:
+  - id: universal
+    ids:
+    - reproducible
+    hooks:
+      post:
+        - mkdir -p dist/gon_template_universal
+        - cp build/gon-template.hcl dist/gon_template_universal/gon-universal.hcl
+        - morph -t dist/gon_template_universal -o dist --set Path={{ .Path }},AppleBundleIDPrefix={{ .Env.APPLE_BUNDLE_ID_PREFIX }},ProjectName={{ .ProjectName }},AppleCertID={{ .Env.APPLE_CERT_ID }},Version={{ .Version }},Arch=universal
+        - gon dist/gon-universal.hcl
+archives:
+  - id: reproducible
+    builds:
+      - reproducible
+    name_template: '{{ .ProjectName }}-v{{ .Version }}-{{ .Os }}-{{ .Arch }}{{ with .Arm }}v{{ . }}{{ end }}'
+    replacements:
+      darwin: macos
+    format_overrides:
+      - goos: windows
+        format: zip
+checksum:
+  name_template: "{{ .ProjectName }}-v{{ .Version }}-checksums.txt"
+  extra_files:
+    - glob: dist/*.dmg
+signs:
+  - cmd: ssh-file-sign
+    args: ["${artifact}", "${signature}"]
+    artifacts: checksum
+release:
+  prerelease: auto
+  extra_files:
+    - glob: dist/*.dmg
+brews:
+  - ids:
+    - reproducible
+    goamd64: v2
+    goarm: 6
+    tap:
+      owner: vin047
+      name: homebrew-tap
+    commit_msg_template: "{{ .ProjectName }}: update to {{ .Tag }}"
+    folder: Formula
+    homepage: "https://vin047.com/"
+    description: "Small command line application for formatting phone numbers in a local format."
+    license: "AGPLv3"
+    skip_upload: auto
+milestones:
+  - close: true
