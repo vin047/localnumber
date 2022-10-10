@@ -49,3 +49,15 @@ func TestIndianPhoneNumber(t *testing.T) {
 		t.Fatalf("output: %v, expected: %v", output, expected)
 	}
 }
+
+func TestIndianPhoneNumberHyphen(t *testing.T) {
+	input := "+91 6297-062979"
+	expected := "6297062979"
+	output, err := Format(input)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if output != expected {
+		t.Fatalf("output: %v, expected: %v", output, expected)
+	}
+}

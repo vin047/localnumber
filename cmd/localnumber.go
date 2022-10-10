@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/vin047/localnumber"
+	"github.com/vin047/localnumber/pkg/localnumber"
 )
 
 func main() {
