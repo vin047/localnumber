@@ -4,7 +4,7 @@ before:
     - go test ./...
 builds:
   - id: reproducible
-    main: ./cmd
+    main: ./cmd/localnumber
     flags:
       - -trimpath
     ldflags:
@@ -36,7 +36,7 @@ universal_binaries:
     hooks:
       post:
         - mkdir -p dist/gon_template_universal
-        - cp build/gon-template.hcl dist/gon_template_universal/gon-universal.hcl
+        - cp build/package/gon-template.hcl dist/gon_template_universal/gon-universal.hcl
         - morph -t dist/gon_template_universal -o dist --set Path={{ .Path }},AppleBundleIDPrefix={{ .Env.APPLE_BUNDLE_ID_PREFIX }},ProjectName={{ .ProjectName }},AppleCertID={{ .Env.APPLE_CERT_ID }},Version={{ .Version }},Arch=universal
         - gon dist/gon-universal.hcl
 archives:
